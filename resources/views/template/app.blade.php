@@ -88,7 +88,7 @@
                                 <img src="{{ asset('assets/images/users/user-1.jpg') }}" width="32" class="rounded-circle me-lg-2 d-flex" alt="user-image" />
 
                                 <div class="d-lg-flex align-items-center gap-1 d-none">
-                                    <h5 class="my-0">Admin</h5>
+                                    <h5 class="my-0">{{ Auth::user()->name }}</h5>
                                     <i data-lucide="chevron-down" class="align-middle"></i>
                                 </div>
                             </a>
@@ -110,7 +110,7 @@
 
                                 <div class="dropdown-divider"></div>
 
-                                <a href="#" class="dropdown-item text-danger fw-semibold">
+                                <a href="{{ url('/login') }}" class="dropdown-item text-danger fw-semibold">
                                     <i data-lucide="log-out" class="me-1 fs-lg align-middle"></i>
                                     <span>Log Out</span>
                                 </a>
@@ -225,6 +225,16 @@
                                 </span>
                                 <span class="menu-text">Laporan Penjualan</span>
                             </a>
+                        </li>
+                        <li class="side-nav-item">
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+
+                                <button type="submit" class="dropdown-item text-danger fw-semibold">
+                                    <i data-lucide="log-out" class="me-1 fs-lg align-middle"></i>
+                                    <span>Log Out</span>
+                                </button>
+                            </form>
                         </li>
 
                     </ul>
