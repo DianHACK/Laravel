@@ -88,7 +88,14 @@
                                 <img src="{{ asset('assets/images/users/user-1.jpg') }}" width="32" class="rounded-circle me-lg-2 d-flex" alt="user-image" />
 
                                 <div class="d-lg-flex align-items-center gap-1 d-none">
-                                    <h5 class="my-0">{{ Auth::user()->name }}</h5>
+                                    <div>
+                                        <h5 class="my-0">
+                                            {{ auth()->user()->name ?? 'User' }}
+                                        </h5>
+                                        <small class="text-muted text-capitalize">
+                                            {{ auth()->user()->role ?? '-' }}
+                                        </small>
+                                    </div>
                                     <i data-lucide="chevron-down" class="align-middle"></i>
                                 </div>
                             </a>
@@ -110,10 +117,14 @@
 
                                 <div class="dropdown-divider"></div>
 
-                                <a href="{{ url('/login') }}" class="dropdown-item text-danger fw-semibold">
-                                    <i data-lucide="log-out" class="me-1 fs-lg align-middle"></i>
-                                    <span>Log Out</span>
-                                </a>
+                                <form action="{{ route('logout') }}" method="POST">
+                                    @csrf
+
+                                    <button type="submit" class="dropdown-item text-danger fw-semibold">
+                                        <i data-lucide="log-out" class="me-1 fs-lg align-middle"></i>
+                                        <span>Log Out</span>
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -167,80 +178,86 @@
                             </a>
                         </li>
 
-                        <li class="side-nav-title mt-2">Master Data</li>
+                        {{-- MENU KHUSUS ADMIN --}}
+                        @if (auth()->user()->role == 'admin')
+                            <li class="side-nav-title mt-2">Master Data</li>
+
+                            <li class="side-nav-item">
+                                <a href="{{ url('/barang') }}" class="side-nav-link {{ request()->is('barang*') ? 'active' : '' }}">
+                                    <span class="menu-icon">
+                                        <i data-lucide="package"></i>
+                                    </span>
+                                    <span class="menu-text">Data Barang</span>
+                                </a>
+                            </li>
+
+                            <li class="side-nav-item">
+                                <a href="{{ url('/kategori') }}" class="side-nav-link {{ request()->is('kategori*') ? 'active' : '' }}">
+                                    <span class="menu-icon">
+                                        <i data-lucide="tags"></i>
+                                    </span>
+                                    <span class="menu-text">Kategori</span>
+                                </a>
+                            </li>
+
+                            <li class="side-nav-item">
+                                <a href="{{ url('/rak') }}" class="side-nav-link {{ request()->is('rak*') ? 'active' : '' }}">
+                                    <span class="menu-icon">
+                                        <i data-lucide="archive"></i>
+                                    </span>
+                                    <span class="menu-text">Rak Barang</span>
+                                </a>
+                            </li>
+
+                            <li class="side-nav-title mt-2">Laporan</li>
+
+                            <li class="side-nav-item">
+                                <a href="{{ url('/laporan') }}" class="side-nav-link {{ request()->is('laporan*') ? 'active' : '' }}">
+                                    <span class="menu-icon">
+                                        <i data-lucide="file-text"></i>
+                                    </span>
+                                    <span class="menu-text">Laporan Penjualan</span>
+                                </a>
+                            </li>
+                        @endif
+
+                        {{-- MENU KHUSUS KASIR --}}
+                        @if (auth()->user()->role == 'kasir')
+                            <li class="side-nav-title mt-2">Transaksi</li>
+
+                            <li class="side-nav-item">
+                                <a href="{{ url('/penjualan') }}" class="side-nav-link {{ request()->is('penjualan*') ? 'active' : '' }}">
+                                    <span class="menu-icon">
+                                        <i data-lucide="shopping-cart"></i>
+                                    </span>
+                                    <span class="menu-text">Penjualan</span>
+                                </a>
+                            </li>
+
+                            <li class="side-nav-item">
+                                <a href="{{ url('/keranjang') }}" class="side-nav-link {{ request()->is('keranjang*') ? 'active' : '' }}">
+                                    <span class="menu-icon">
+                                        <i data-lucide="shopping-basket"></i>
+                                    </span>
+                                    <span class="menu-text">Keranjang</span>
+                                </a>
+                            </li>
+                        @endif
+
+                        {{-- LOGOUT --}}
+                        <li class="side-nav-title mt-2">Akun</li>
 
                         <li class="side-nav-item">
-                            <a href="{{ url('/barang') }}" class="side-nav-link {{ request()->is('barang*') ? 'active' : '' }}">
-                                <span class="menu-icon">
-                                    <i data-lucide="package"></i>
-                                </span>
-                                <span class="menu-text">Data Barang</span>
-                            </a>
-                        </li>
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
 
-                        <li class="side-nav-item">
-                            <a href="{{ url('/kategori') }}" class="side-nav-link {{ request()->is('kategori*') ? 'active' : '' }}">
-                                <span class="menu-icon">
-                                    <i data-lucide="tags"></i>
-                                </span>
-                                <span class="menu-text">Kategori</span>
-                            </a>
-                        </li>
-
-                        <li class="side-nav-item">
-                            <a href="{{ url('/rak') }}" class="side-nav-link {{ request()->is('rak*') ? 'active' : '' }}">
-                                <span class="menu-icon">
-                                    <i data-lucide="archive"></i>
-                                </span>
-                                <span class="menu-text">Rak Barang</span>
-                            </a>
-                        </li>
-
-                        <li class="side-nav-title mt-2">Transaksi</li>
-
-                        <li class="side-nav-item">
-                            <a href="{{ url('/penjualan') }}" class="side-nav-link {{ request()->is('penjualan*') ? 'active' : '' }}">
-                                <span class="menu-icon">
-                                    <i data-lucide="shopping-cart"></i>
-                                </span>
-                                <span class="menu-text">Penjualan</span>
-                            </a>
-                        </li>
-
-                        <li class="side-nav-item">
-                            <a href="{{ url('/keranjang') }}" class="side-nav-link {{ request()->is('keranjang*') ? 'active' : '' }}">
-                                <span class="menu-icon">
-                                    <i data-lucide="shopping-basket"></i>
-                                </span>
-                                <span class="menu-text">Keranjang</span>
-                            </a>
-                        </li>
-
-                        <li class="side-nav-title mt-2">Laporan</li>
-
-                        <li class="side-nav-item">
-                            <a href="{{ url('/laporan') }}" class="side-nav-link {{ request()->is('laporan*') ? 'active' : '' }}">
-                                <span class="menu-icon">
-                                    <i data-lucide="file-text"></i>
-                                </span>
-                                <span class="menu-text">Laporan Penjualan</span>
-                            </a>
-                        </li>
-                        <li class="side-nav-item">
-                            <a href="{{ url('/login') }}" class="side-nav-link {{ request()->is('login*') ? 'active' : '' }}">
-                                <span class="menu-icon">
-                                    <i data-lucide="file-text"></i>
-                                </span>
-                                <form action="{{ route('logout') }}" method="POST">
-                                    @csrf
-
-                                    <button type="submit" class="dropdown-item text-danger fw-semibold">
-                                        <i data-lucide="log-out" class="me-1 fs-lg align-middle"></i>
-                                        <span>Log Out</span>
-                                    </button>
-                                </form>
-
-                            </a>
+                                <button type="submit" class="side-nav-link w-100 border-0 bg-transparent text-start">
+                                    <span class="menu-icon">
+                                        <i data-lucide="log-out"></i>
+                                    </span>
+                                    <span class="menu-text text-danger">Log Out</span>
+                                </button>
+                            </form>
                         </li>
 
                     </ul>

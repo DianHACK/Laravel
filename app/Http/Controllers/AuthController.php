@@ -11,6 +11,10 @@ class AuthController
 {
     public function showLogin()
     {
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
+
         return view('auth.login');
     }
 
@@ -36,6 +40,10 @@ class AuthController
 
     public function showRegister()
     {
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
+
         return view('auth.register');
     }
 
@@ -51,6 +59,7 @@ class AuthController
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
+            'role'     => 'kasir',
         ]);
 
         return redirect()->route('login')->with('success', 'Registrasi berhasil, silakan login');
