@@ -227,14 +227,20 @@
                             </a>
                         </li>
                         <li class="side-nav-item">
-                            <form action="{{ route('logout') }}" method="POST">
-                                @csrf
+                            <a href="{{ url('/login') }}" class="side-nav-link {{ request()->is('login*') ? 'active' : '' }}">
+                                <span class="menu-icon">
+                                    <i data-lucide="file-text"></i>
+                                </span>
+                                <form action="{{ route('logout') }}" method="POST">
+                                    @csrf
 
-                                <button type="submit" class="dropdown-item text-danger fw-semibold">
-                                    <i data-lucide="log-out" class="me-1 fs-lg align-middle"></i>
-                                    <span>Log Out</span>
-                                </button>
-                            </form>
+                                    <button type="submit" class="dropdown-item text-danger fw-semibold">
+                                        <i data-lucide="log-out" class="me-1 fs-lg align-middle"></i>
+                                        <span>Log Out</span>
+                                    </button>
+                                </form>
+
+                            </a>
                         </li>
 
                     </ul>
