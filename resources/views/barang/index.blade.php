@@ -43,7 +43,7 @@
 
                 <div class="table-responsive">
                     <table class="table table-centered table-hover table-bordered align-middle" id="tableBarang">
-                        <thead class="table-light">
+                        <thead class="table align-middle">
                             <tr>
                                 <th width="50">No</th>
                                 <th>Gambar</th>
@@ -51,8 +51,11 @@
                                 <th>Kategori</th>
                                 <th>Rak</th>
                                 <th>Harga</th>
+                                <th>Harga Modal</th>
+                                <th>Diskon</th>
                                 <th>Stok</th>
                                 <th>Expired</th>
+                                <th>Status Expired</th>
                                 <th>Status</th>
                                 <th width="150">Aksi</th>
                             </tr>
@@ -90,6 +93,20 @@
                                     <td>
                                         Rp {{ number_format(data_get($barang, 'harga', 0), 0, ',', '.') }}
                                     </td>
+                                    <td>
+                                        Rp {{ number_format($barang->harga_modal ?? 0, 0, ',', '.') }}
+                                    </td>
+                                    <td>
+                                        @if (($barang->diskon ?? 0) > 0)
+                                            <span class="badge bg-danger">
+                                                {{ $barang->diskon }}%
+                                            </span>
+                                        @else
+                                            <span class="badge bg-secondary">
+                                                0%
+                                            </span>
+                                        @endif
+                                    </td>
 
                                     <td>
                                         {{ data_get($barang, 'stok', 0) }}
@@ -97,6 +114,34 @@
 
                                     <td>
                                         {{ data_get($barang, 'expired_date', '-') }}
+                                    </td>
+                                    <td>
+                                        @if ($barang->expired_date)
+                                            @php
+                                                $tanggalExpired = \Carbon\Carbon::parse($barang->expired_date)->startOfDay();
+                                                $hariIni = \Carbon\Carbon::today();
+                                                $batasHampirExpired = \Carbon\Carbon::today()->addDays(30);
+
+                                                if ($tanggalExpired->lt($hariIni)) {
+                                                    $statusText = 'Expired';
+                                                    $badge = 'bg-danger';
+                                                } elseif ($tanggalExpired->between($hariIni, $batasHampirExpired)) {
+                                                    $statusText = 'Hampir Expired';
+                                                    $badge = 'bg-warning text-dark';
+                                                } else {
+                                                    $statusText = 'Aman';
+                                                    $badge = 'bg-success';
+                                                }
+                                            @endphp
+
+                                            <span class="badge {{ $badge }}">
+                                                {{ $statusText }}
+                                            </span>
+                                        @else
+                                            <span class="badge bg-secondary">
+                                                Tidak Ada Tanggal
+                                            </span>
+                                        @endif
                                     </td>
 
                                     <td>

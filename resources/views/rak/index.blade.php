@@ -42,7 +42,7 @@
 
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover align-middle">
-                        <thead class="table-light">
+                        <thead class="table align-middle">
                             <tr>
                                 <th width="50">No</th>
                                 <th>Nama Rak</th>

@@ -17,9 +17,6 @@
     <!-- App CSS -->
     <link id="app-style" href="{{ asset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css" />
 
-    @stack('styles')
-</head>
-
 <body>
     <div class="wrapper">
 
@@ -30,7 +27,7 @@
 
                     <!-- Logo -->
                     <div class="logo-topbar">
-                        <a href="{{ url('/dashboard') }}" class="logo-light">
+                        <a href="{{ route('dashboard') }}" class="logo-light">
                             <span class="logo-lg">
                                 <img src="{{ asset('assets/images/logo.png') }}" alt="logo" />
                             </span>
@@ -39,7 +36,7 @@
                             </span>
                         </a>
 
-                        <a href="{{ url('/dashboard') }}" class="logo-dark">
+                        <a href="{{ route('dashboard') }}" class="logo-dark">
                             <span class="logo-lg">
                                 <img src="{{ asset('assets/images/logo-black.png') }}" alt="dark logo" />
                             </span>
@@ -65,13 +62,194 @@
                         <i data-lucide="search" class="app-search-icon text-muted"></i>
                     </div>
 
-                    <!-- Notification -->
-                    <div class="topbar-item">
-                        <button class="topbar-link" type="button">
-                            <i data-lucide="bell" class="topbar-link-icon"></i>
-                            <span class="badge text-bg-danger badge-circle topbar-badge">3</span>
-                        </button>
+                    <!-- Dark Mode -->
+                    <div id="theme-dropdown" class="topbar-item d-none d-sm-flex">
+                        <div class="dropdown">
+                            <button class="topbar-link" data-bs-toggle="dropdown" type="button" aria-haspopup="false" aria-expanded="false">
+                                <i data-lucide="sun" class="topbar-link-icon" id="theme-icon-light"></i>
+                                <i data-lucide="moon" class="topbar-link-icon d-none" id="theme-icon-dark"></i>
+                                <i data-lucide="sun-moon" class="topbar-link-icon d-none" id="theme-icon-system"></i>
+                            </button>
+
+                            <div class="dropdown-menu dropdown-menu-end" data-thememode="dropdown">
+                                <label class="dropdown-item cursor-pointer active">
+                                    <input class="form-check-input" type="radio" name="data-bs-theme" value="light" style="display: none">
+                                    <i data-lucide="sun" class="align-middle me-1 fs-16"></i>
+                                    <span class="align-middle">Light</span>
+                                </label>
+
+                                <label class="dropdown-item cursor-pointer">
+                                    <input class="form-check-input" type="radio" name="data-bs-theme" value="dark" style="display: none">
+                                    <i data-lucide="moon" class="align-middle me-1 fs-16"></i>
+                                    <span class="align-middle">Dark</span>
+                                </label>
+
+                                <label class="dropdown-item cursor-pointer">
+                                    <input class="form-check-input" type="radio" name="data-bs-theme" value="system" style="display: none">
+                                    <i data-lucide="sun-moon" class="align-middle me-1 fs-16"></i>
+                                    <span class="align-middle">System</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Notification Stok Menipis -->
+                    @if (auth()->check() && auth()->user()->role == 'admin')
+                        @php
+                            $hariIni = \Carbon\Carbon::today();
+                            $batasHampirExpired = \Carbon\Carbon::today()->addDays(30);
+
+                            $jumlahStokMenipis = \App\Models\Barang::where('stok', '<=', 50)->count();
+
+                            $stokMenipisNotif = \App\Models\Barang::where('stok', '<=', 50)
+                                ->orderBy('stok', 'asc')
+                                ->limit(5)
+                                ->get();
+
+                            $jumlahHampirExpired = \App\Models\Barang::whereNotNull('expired_date')
+                                ->whereDate('expired_date', '>=', $hariIni)
+                                ->whereDate('expired_date', '<=', $batasHampirExpired)
+                                ->count();
+
+                            $hampirExpiredNotif = \App\Models\Barang::whereNotNull('expired_date')
+                                ->whereDate('expired_date', '>=', $hariIni)
+                                ->whereDate('expired_date', '<=', $batasHampirExpired)
+                                ->orderBy('expired_date', 'asc')
+                                ->limit(5)
+                                ->get();
+
+                            $totalNotifikasi = $jumlahStokMenipis + $jumlahHampirExpired;
+                        @endphp
+
+                        <div id="notification-dropdown-stock" class="topbar-item">
+                            <div class="dropdown">
+                                <button class="topbar-link dropdown-toggle drop-arrow-none"
+                                        data-bs-toggle="dropdown"
+                                        type="button"
+                                        data-bs-auto-close="outside"
+                                        aria-haspopup="false"
+                                        aria-expanded="false">
+
+                                    <i data-lucide="bell" class="topbar-link-icon animate-ring"></i>
+
+                                    @if ($totalNotifikasi > 0)
+                                        <span class="badge text-bg-danger badge-circle topbar-badge">
+                                            {{ $totalNotifikasi }}
+                                        </span>
+                                    @endif
+
+                                </button>
+
+                                <div class="dropdown-menu p-0 dropdown-menu-end dropdown-menu-lg">
+
+                                    <div class="px-3 py-2 border-bottom">
+                                        <div class="row align-items-center">
+                                            <div class="col">
+                                                <h6 class="m-0 fs-md fw-semibold">Notifikasi Stok</h6>
+                                            </div>
+
+                                            <div class="col text-end">
+                                                <span class="badge text-bg-danger">
+                                                    {{ $jumlahStokMenipis }} Barang
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style="max-height: 300px" data-simplebar>
+                                        @forelse ($stokMenipisNotif as $barangNotif)
+                                            <a href="{{ route('barang.edit', $barangNotif->id) }}"
+                                               class="dropdown-item notification-item py-2 text-wrap">
+
+                                                <span class="d-flex align-items-center gap-3">
+                                                    <span class="flex-shrink-0 position-relative">
+                                                        <span class="avatar-md rounded-circle bg-warning-subtle d-flex align-items-center justify-content-center">
+                                                            <i data-lucide="alert-triangle" class="text-warning"></i>
+                                                        </span>
+                                                    </span>
+
+                                                    <span class="flex-grow-1 text-muted">
+                                                        <span class="fw-medium text-body">
+                                                            {{ $barangNotif->nama_barang }}
+                                                        </span>
+
+                                                        <br>
+
+                                                        Stok tersisa:
+                                                        <span class="fw-bold text-danger">
+                                                            {{ $barangNotif->stok }}
+                                                        </span>
+
+                                                        <br>
+
+                                                        <span class="fs-xs">
+                                                            Segera tambah stok barang
+                                                        </span>
+                                                    </span>
+                                                </span>
+                                            </a>
+                                        @empty
+                                            <div class="dropdown-item text-center text-muted py-3">
+                                                Tidak ada stok menipis
+                                            </div>
+                                        @endforelse
+                                        <div class="border-top px-3 py-2">
+                                            <h6 class="m-0 fs-md fw-semibold">Barang Hampir Expired</h6>
+                                        </div>
+
+                                        @forelse ($hampirExpiredNotif as $barangExpiredNotif)
+                                            <a href="{{ route('barang.edit', $barangExpiredNotif->id) }}"
+                                            class="dropdown-item notification-item py-2 text-wrap">
+
+                                                <span class="d-flex align-items-center gap-3">
+                                                    <span class="flex-shrink-0 position-relative">
+                                                        <span class="avatar-md rounded-circle bg-danger-subtle d-flex align-items-center justify-content-center">
+                                                            <i data-lucide="calendar-clock" class="text-danger"></i>
+                                                        </span>
+                                                    </span>
+
+                                                    <span class="flex-grow-1 text-muted">
+                                                        <span class="fw-medium text-body">
+                                                            {{ $barangExpiredNotif->nama_barang }}
+                                                        </span>
+
+                                                        <br>
+
+                                                        Expired:
+                                                        <span class="fw-bold text-danger">
+                                                            {{ date('d-m-Y', strtotime($barangExpiredNotif->expired_date)) }}
+                                                        </span>
+
+                                                        <br>
+
+                                                        <span class="fs-xs">
+                                                            Segera cek barang ini
+                                                        </span>
+                                                    </span>
+                                                </span>
+                                            </a>
+                                        @empty
+                                            <div class="dropdown-item text-center text-muted py-3">
+                                                Tidak ada barang hampir expired
+                                            </div>
+                                        @endforelse
+                                    </div>
+
+                                    <div class="border-top d-flex">
+                                        <a href="{{ route('barang.stokMenipis') }}"
+                                        class="dropdown-item text-center text-primary fw-bold py-2">
+                                            Stok Menipis
+                                        </a>
+
+                                        <a href="{{ route('barang.expired') }}"
+                                        class="dropdown-item text-center text-danger fw-bold py-2">
+                                            Expired
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
                     <!-- Fullscreen -->
                     <div class="topbar-item d-none d-md-flex">
@@ -105,14 +283,9 @@
                                     <h6 class="text-overflow m-0">Selamat Datang!</h6>
                                 </div>
 
-                                <a href="#" class="dropdown-item">
+                                <a href="{{ route('profile.index') }}" class="dropdown-item">
                                     <i data-lucide="circle-user-round" class="me-1 fs-lg align-middle"></i>
                                     <span>Profile</span>
-                                </a>
-
-                                <a href="#" class="dropdown-item">
-                                    <i data-lucide="settings" class="me-1 fs-lg align-middle"></i>
-                                    <span>Pengaturan</span>
                                 </a>
 
                                 <div class="dropdown-divider"></div>
@@ -138,7 +311,7 @@
         <div class="sidenav-menu">
 
             <!-- Brand Logo -->
-            <a href="{{ url('/dashboard') }}" class="logo">
+            <a href="{{ route('dashboard') }}" class="logo">
                 <span class="logo logo-light">
                     <span class="logo-lg">
                         <img src="{{ asset('assets/images/logo.png') }}" alt="logo" />
@@ -170,7 +343,7 @@
                         <li class="side-nav-title mt-2">Menu Utama</li>
 
                         <li class="side-nav-item">
-                            <a href="{{ url('/dashboard') }}" class="side-nav-link {{ request()->is('dashboard') ? 'active' : '' }}">
+                            <a href="{{ route('dashboard') }}" class="side-nav-link {{ request()->is('dashboard') ? 'active' : '' }}">
                                 <span class="menu-icon">
                                     <i data-lucide="layout-dashboard"></i>
                                 </span>
@@ -179,11 +352,11 @@
                         </li>
 
                         {{-- MENU KHUSUS ADMIN --}}
-                        @if (auth()->user()->role == 'admin')
+                        @if (auth()->check() && auth()->user()->role == 'admin')
                             <li class="side-nav-title mt-2">Master Data</li>
 
                             <li class="side-nav-item">
-                                <a href="{{ url('/barang') }}" class="side-nav-link {{ request()->is('barang*') ? 'active' : '' }}">
+                                <a href="{{ route('barang.index') }}" class="side-nav-link {{ request()->is('barang') || request()->is('barang/create') || request()->is('barang/*/edit') ? 'active' : '' }}">
                                     <span class="menu-icon">
                                         <i data-lucide="package"></i>
                                     </span>
@@ -192,7 +365,35 @@
                             </li>
 
                             <li class="side-nav-item">
-                                <a href="{{ url('/kategori') }}" class="side-nav-link {{ request()->is('kategori*') ? 'active' : '' }}">
+                                <a href="{{ route('barang.stokMenipis') }}" class="side-nav-link {{ request()->is('stok-menipis*') ? 'active' : '' }}">
+                                    <span class="menu-icon">
+                                        <i data-lucide="alert-triangle"></i>
+                                    </span>
+                                    <span class="menu-text">Stok Menipis</span>
+                                </a>
+                            </li>
+
+                            <li class="side-nav-item">
+                                <a href="{{ route('stok.index') }}"
+                                class="side-nav-link {{ request()->is('stok') || request()->is('stok/*') ? 'active' : '' }}">
+                                    <span class="menu-icon">
+                                        <i data-lucide="arrow-left-right"></i>
+                                    </span>
+                                    <span class="menu-text">Stok Masuk/Keluar</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item">
+                                <a href="{{ route('barang.expired') }}"
+                                class="side-nav-link {{ request()->is('expired-barang*') ? 'active' : '' }}">
+                                    <span class="menu-icon">
+                                        <i data-lucide="calendar-clock"></i>
+                                    </span>
+                                    <span class="menu-text">Expired Barang</span>
+                                </a>
+                            </li>
+
+                            <li class="side-nav-item">
+                                <a href="{{ route('kategori.index') }}" class="side-nav-link {{ request()->is('kategori*') ? 'active' : '' }}">
                                     <span class="menu-icon">
                                         <i data-lucide="tags"></i>
                                     </span>
@@ -201,7 +402,7 @@
                             </li>
 
                             <li class="side-nav-item">
-                                <a href="{{ url('/rak') }}" class="side-nav-link {{ request()->is('rak*') ? 'active' : '' }}">
+                                <a href="{{ route('rak.index') }}" class="side-nav-link {{ request()->is('rak*') ? 'active' : '' }}">
                                     <span class="menu-icon">
                                         <i data-lucide="archive"></i>
                                     </span>
@@ -209,24 +410,24 @@
                                 </a>
                             </li>
 
-                            <li class="side-nav-title mt-2">Laporan</li>
+                            <li class="side-nav-title mt-2">Pengguna</li>
 
                             <li class="side-nav-item">
-                                <a href="{{ url('/laporan') }}" class="side-nav-link {{ request()->is('laporan*') ? 'active' : '' }}">
+                                <a href="{{ route('users.index') }}" class="side-nav-link {{ request()->is('users*') ? 'active' : '' }}">
                                     <span class="menu-icon">
-                                        <i data-lucide="file-text"></i>
+                                        <i data-lucide="users"></i>
                                     </span>
-                                    <span class="menu-text">Laporan Penjualan</span>
+                                    <span class="menu-text">User Management</span>
                                 </a>
                             </li>
                         @endif
 
-                        {{-- MENU KHUSUS KASIR --}}
-                        @if (auth()->user()->role == 'kasir')
+                        {{-- MENU TRANSAKSI UNTUK ADMIN DAN KASIR --}}
+                        @if (auth()->check() && in_array(auth()->user()->role, ['admin', 'kasir']))
                             <li class="side-nav-title mt-2">Transaksi</li>
 
                             <li class="side-nav-item">
-                                <a href="{{ url('/penjualan') }}" class="side-nav-link {{ request()->is('penjualan*') ? 'active' : '' }}">
+                                <a href="{{ route('penjualan.index') }}" class="side-nav-link {{ request()->is('penjualan*') ? 'active' : '' }}">
                                     <span class="menu-icon">
                                         <i data-lucide="shopping-cart"></i>
                                     </span>
@@ -235,11 +436,52 @@
                             </li>
 
                             <li class="side-nav-item">
-                                <a href="{{ url('/keranjang') }}" class="side-nav-link {{ request()->is('keranjang*') ? 'active' : '' }}">
+                                <a href="{{ route('keranjang.index') }}" class="side-nav-link {{ request()->is('keranjang*') ? 'active' : '' }}">
                                     <span class="menu-icon">
                                         <i data-lucide="shopping-basket"></i>
                                     </span>
                                     <span class="menu-text">Keranjang</span>
+                                </a>
+                            </li>
+
+                            <li class="side-nav-item">
+                                <a href="{{ route('riwayat.index') }}" class="side-nav-link {{ request()->is('riwayat-transaksi*') ? 'active' : '' }}">
+                                    <span class="menu-icon">
+                                        <i data-lucide="history"></i>
+                                    </span>
+                                    <span class="menu-text">Riwayat Transaksi</span>
+                                </a>
+                            </li>
+                        @endif
+
+                        {{-- LAPORAN KHUSUS ADMIN --}}
+                        @if (auth()->check() && auth()->user()->role == 'admin')
+                            <li class="side-nav-title mt-2">Laporan</li>
+
+                            <li class="side-nav-item">
+                                <a href="{{ route('laporan.index') }}" class="side-nav-link {{ request()->is('laporan*') ? 'active' : '' }}">
+                                    <span class="menu-icon">
+                                        <i data-lucide="file-text"></i>
+                                    </span>
+                                    <span class="menu-text">Laporan Penjualan</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item">
+                                <a href="{{ route('barang.terlaris') }}"
+                                class="side-nav-link {{ request()->is('barang-terlaris*') ? 'active' : '' }}">
+                                    <span class="menu-icon">
+                                        <i data-lucide="trending-up"></i>
+                                    </span>
+                                    <span class="menu-text">Barang Terlaris</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item">
+                                <a href="{{ route('laporan.keuntungan') }}"
+                                class="side-nav-link {{ request()->is('laporan-keuntungan*') ? 'active' : '' }}">
+                                    <span class="menu-icon">
+                                        <i data-lucide="line-chart"></i>
+                                    </span>
+                                    <span class="menu-text">Laporan Keuntungan</span>
                                 </a>
                             </li>
                         @endif

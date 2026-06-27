@@ -15,10 +15,12 @@ class Barang extends Model
         'id_kategori',
         'id_rak',
         'harga',
+        'harga_modal',
+        'diskon',
         'stok',
+        'gambar',
         'expired_date',
         'deskripsi',
-        'gambar',
     ];
 
     public function kategori()

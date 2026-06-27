@@ -7,6 +7,8 @@ use App\Models\Kategori;
 use App\Models\Rak;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
+
 
 
 class ControllerBarang
@@ -38,14 +40,14 @@ public function edit($id)
     public function store(Request $request)
     {
         $request->validate([
-            'nama_barang'  => 'required|min:3',
-            'id_kategori'  => 'required',
-            'id_rak'       => 'required',
-            'harga'        => 'required|numeric|min:0',
-            'stok'         => 'required|numeric|min:0',
-            'expired_date' => 'nullable|date',
-            'deskripsi'    => 'nullable',
-            'gambar'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'nama_barang' => 'required',
+            'id_kategori' => 'required',
+            'id_rak' => 'required',
+            'harga' => 'required|numeric|min:0',
+            'harga_modal' => 'required|numeric|min:0',
+            'diskon' => 'nullable|integer|min:0|max:100',
+            'stok' => 'required|integer|min:0',
+            'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         $gambarPath = null;
@@ -55,14 +57,16 @@ public function edit($id)
         }
 
         Barang::create([
-            'nama_barang'  => $request->nama_barang,
-            'id_kategori'  => $request->id_kategori,
-            'id_rak'       => $request->id_rak,
-            'harga'        => $request->harga,
-            'stok'         => $request->stok,
+            'nama_barang' => $request->nama_barang,
+            'id_kategori' => $request->id_kategori,
+            'id_rak' => $request->id_rak,
+            'harga' => $request->harga,
+            'harga_modal' => $request->harga_modal,
+            'diskon' => $request->diskon ?? 0,
+            'stok' => $request->stok,
+            'gambar' => $gambar ?? null,
             'expired_date' => $request->expired_date,
-            'deskripsi'    => $request->deskripsi,
-            'gambar'       => $gambarPath,
+            'deskripsi' => $request->deskripsi,
         ]);
 
         return redirect()->route('barang.index')->with('success', 'Barang berhasil disimpan');
@@ -77,6 +81,8 @@ public function edit($id)
             'id_kategori'  => 'required',
             'id_rak'       => 'required',
             'harga'        => 'required|numeric|min:0',
+            'harga_modal' => 'required|numeric|min:0',
+            'diskon' => 'nullable|integer|min:0|max:100',
             'stok'         => 'required|numeric|min:0',
             'expired_date' => 'nullable|date',
             'deskripsi'    => 'nullable',
@@ -100,6 +106,8 @@ public function edit($id)
             'id_kategori'  => $request->id_kategori,
             'id_rak'       => $request->id_rak,
             'harga'        => $request->harga,
+            'harga_modal' => $request->harga_modal,
+            'diskon' => $request->diskon ?? 0,
             'stok'         => $request->stok,
             'expired_date' => $request->expired_date,
             'deskripsi'    => $request->deskripsi,
@@ -110,17 +118,69 @@ public function edit($id)
     }
 
     public function destroy($id)
-{
-    $barang = Barang::findOrFail($id);
+    {
+        $barang = Barang::findOrFail($id);
 
-    if ($barang->gambar && Storage::disk('public')->exists($barang->gambar)) {
-        Storage::disk('public')->delete($barang->gambar);
+        if ($barang->gambar && Storage::disk('public')->exists($barang->gambar)) {
+            Storage::disk('public')->delete($barang->gambar);
+        }
+
+        $barang->delete();
+
+        return redirect()->route('barang.index')->with('success', 'Barang berhasil dihapus');
+    }
+    public function stokMenipis()
+    {
+        $barangs = Barang::with(['kategori', 'rak'])
+            ->where('stok', '<=', 50)
+            ->orderBy('stok', 'asc')
+            ->get();
+
+        return view('barang.stok-menipis', compact('barangs'));
     }
 
-    $barang->delete();
+    public function expiredBarang(Request $request)
+    {
+        $hariIni = Carbon::today();
+        $batasHampirExpired = Carbon::today()->addDays(30);
 
-    return redirect()->route('barang.index')->with('success', 'Barang berhasil dihapus');
-}
+        $query = Barang::with(['kategori', 'rak'])
+            ->whereNotNull('expired_date');
+
+        if ($request->status == 'expired') {
+            $query->whereDate('expired_date', '<', $hariIni);
+        } elseif ($request->status == 'hampir') {
+            $query->whereDate('expired_date', '>=', $hariIni)
+                ->whereDate('expired_date', '<=', $batasHampirExpired);
+        } elseif ($request->status == 'aman') {
+            $query->whereDate('expired_date', '>', $batasHampirExpired);
+        }
+
+        $barangs = $query->orderBy('expired_date', 'asc')->get();
+
+        $jumlahExpired = Barang::whereNotNull('expired_date')
+            ->whereDate('expired_date', '<', $hariIni)
+            ->count();
+
+        $jumlahHampirExpired = Barang::whereNotNull('expired_date')
+            ->whereDate('expired_date', '>=', $hariIni)
+            ->whereDate('expired_date', '<=', $batasHampirExpired)
+            ->count();
+
+        $jumlahAman = Barang::whereNotNull('expired_date')
+            ->whereDate('expired_date', '>', $batasHampirExpired)
+            ->count();
+
+        return view('barang.expired', compact(
+            'barangs',
+            'jumlahExpired',
+            'jumlahHampirExpired',
+            'jumlahAman',
+            'hariIni',
+            'batasHampirExpired'
+        ));
+    }
+
 
 
 }

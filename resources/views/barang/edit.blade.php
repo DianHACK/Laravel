@@ -99,7 +99,27 @@
                                                required>
                                     </div>
                                 </div>
-
+                                <div class="mb-3">
+                                    <label class="form-label">Harga Modal</label>
+                                    <input type="number"
+                                        name="harga_modal"
+                                        class="form-control"
+                                        value="{{ old('harga_modal', $barang->harga_modal ?? 0) }}"
+                                        min="0"
+                                        placeholder="Masukkan harga modal barang"
+                                        required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Diskon (%)</label>
+                                    <input type="number"
+                                        name="diskon"
+                                        class="form-control"
+                                        value="{{ old('diskon', $barang->diskon ?? 0) }}"
+                                        min="0"
+                                        max="100"
+                                        placeholder="Masukkan diskon barang">
+                                    <small class="text-muted">Isi 0 jika tidak ada diskon.</small>
+                                </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="stok" class="form-label">Stok</label>
