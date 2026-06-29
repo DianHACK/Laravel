@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class ControllerKeranjang
+class ControllerKeranjang 
 {
     public function index()
     {
@@ -44,23 +44,38 @@ class ControllerKeranjang
             ->firstOrFail();
 
         if ($request->jumlah > $keranjang->barang->stok) {
-            return back()->with('error', 'Jumlah beli melebihi stok barang');
+            return back()->with('error', 'Jumlah melebihi stok barang yang tersedia');
         }
 
         $keranjang->update([
             'jumlah' => $request->jumlah,
         ]);
 
+        LogAktivitas::catat(
+            'Update Keranjang',
+            'Keranjang',
+            'Mengubah jumlah barang ' . $keranjang->barang->nama_barang . ' menjadi ' . $request->jumlah
+        );
+
         return back()->with('success', 'Jumlah barang berhasil diperbarui');
     }
 
     public function destroy(int $id)
     {
-        $keranjang = Keranjang::where('id_user', Auth::id())
+        $keranjang = Keranjang::with('barang')
+            ->where('id_user', Auth::id())
             ->where('id', $id)
             ->firstOrFail();
 
+        $namaBarang = $keranjang->barang->nama_barang ?? 'Barang tidak ditemukan';
+
         $keranjang->delete();
+
+        LogAktivitas::catat(
+            'Hapus Keranjang',
+            'Keranjang',
+            'Menghapus barang dari keranjang: ' . $namaBarang
+        );
 
         return back()->with('success', 'Barang berhasil dihapus dari keranjang');
     }
@@ -85,8 +100,6 @@ class ControllerKeranjang
         ]);
 
         DB::beginTransaction();
-
-
 
         try {
             $penjualan = Penjualan::create([
@@ -128,12 +141,17 @@ class ControllerKeranjang
                 $barang->update([
                     'stok' => $barang->stok - $keranjang->jumlah,
                 ]);
-
             }
 
             Keranjang::where('id_user', Auth::id())->delete();
 
             DB::commit();
+
+            LogAktivitas::catat(
+                'Checkout',
+                'Penjualan',
+                'Melakukan checkout transaksi ' . $penjualan->kode_transaksi . ' dengan total Rp ' . number_format($total, 0, ',', '.')
+            );
 
             return redirect()->route('penjualan.struk', $penjualan->id)
                 ->with('success', 'Checkout berhasil');
@@ -150,6 +168,10 @@ class ControllerKeranjang
         $penjualan = Penjualan::with(['detail.barang', 'user'])
             ->findOrFail($id);
 
+        if (Auth::user()->role == 'kasir' && $penjualan->id_user != Auth::id()) {
+            abort(403, 'Anda tidak memiliki akses ke struk ini.');
+        }
+
         $pengaturan = PengaturanToko::first();
 
         return view('penjualan.struk', compact(
@@ -157,5 +179,4 @@ class ControllerKeranjang
             'pengaturan'
         ));
     }
-    
 }
