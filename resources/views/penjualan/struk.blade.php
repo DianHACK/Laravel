@@ -101,7 +101,13 @@
         <div class="struk-area">
 
             <div class="struk-title">
-                SISTEM SWALAYAN
+                <h3>{{ $pengaturan->nama_toko ?? 'Sistem Swalayan' }}</h3>
+
+                <p>
+                    {{ $pengaturan->alamat ?? '-' }} <br>
+                    {{ $pengaturan->no_hp ?? '-' }} <br>
+                    {{ $pengaturan->email ?? '-' }}
+                </p>
             </div>
 
             <div class="struk-subtitle">

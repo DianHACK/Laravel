@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Barang;
 use App\Models\Kategori;
 use App\Models\Rak;
+use App\Models\LogAktivitas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
@@ -56,7 +57,7 @@ public function edit($id)
             $gambarPath = $request->file('gambar')->store('barang', 'public');
         }
 
-        Barang::create([
+        $barang = Barang::create([
             'nama_barang' => $request->nama_barang,
             'id_kategori' => $request->id_kategori,
             'id_rak' => $request->id_rak,
@@ -68,6 +69,12 @@ public function edit($id)
             'expired_date' => $request->expired_date,
             'deskripsi' => $request->deskripsi,
         ]);
+
+        LogAktivitas::catat(
+            'Tambah Barang',
+            'Barang',
+            'Menambahkan barang baru: ' . $barang->nama_barang
+        );
 
         return redirect()->route('barang.index')->with('success', 'Barang berhasil disimpan');
     }
@@ -112,7 +119,14 @@ public function edit($id)
             'expired_date' => $request->expired_date,
             'deskripsi'    => $request->deskripsi,
             'gambar'       => $gambarPath,
-        ]);
+
+            ]);
+            LogAktivitas::catat(
+                'Edit Barang',
+                'Barang',
+                'Mengedit data barang: ' . $barang->nama_barang
+            );
+
 
         return redirect()->route('barang.index')->with('success', 'Barang berhasil diperbarui');
     }
@@ -121,11 +135,19 @@ public function edit($id)
     {
         $barang = Barang::findOrFail($id);
 
+        $namaBarang = $barang->nama_barang;
+
         if ($barang->gambar && Storage::disk('public')->exists($barang->gambar)) {
             Storage::disk('public')->delete($barang->gambar);
         }
 
         $barang->delete();
+
+        LogAktivitas::catat(
+            'Hapus Barang',
+            'Barang',
+            'Menghapus barang: ' . $namaBarang
+        );
 
         return redirect()->route('barang.index')->with('success', 'Barang berhasil dihapus');
     }

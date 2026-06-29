@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kategori;
+use App\Models\LogAktivitas;
 use Illuminate\Http\Request;
 
-class ControllerKategori
+class ControllerKategori 
 {
     public function index()
     {
-        $kategoris = Kategori::latest()->get();
+        $kategoris = Kategori::orderBy('id', 'desc')->get();
 
         return view('kategori.index', compact('kategoris'));
     }
@@ -26,10 +27,16 @@ class ControllerKategori
             'deskripsi' => 'nullable',
         ]);
 
-        Kategori::create([
+        $kategori = Kategori::create([
             'nama_kategori' => $request->nama_kategori,
             'deskripsi' => $request->deskripsi,
         ]);
+
+        LogAktivitas::catat(
+            'Tambah Kategori',
+            'Kategori',
+            'Menambahkan kategori: ' . $kategori->nama_kategori
+        );
 
         return redirect()->route('kategori.index')->with('success', 'Kategori berhasil ditambahkan');
     }
@@ -55,13 +62,28 @@ class ControllerKategori
             'deskripsi' => $request->deskripsi,
         ]);
 
+        LogAktivitas::catat(
+            'Edit Kategori',
+            'Kategori',
+            'Mengedit kategori: ' . $kategori->nama_kategori
+        );
+
         return redirect()->route('kategori.index')->with('success', 'Kategori berhasil diperbarui');
     }
 
     public function destroy($id)
     {
         $kategori = Kategori::findOrFail($id);
+
+        $namaKategori = $kategori->nama_kategori;
+
         $kategori->delete();
+
+        LogAktivitas::catat(
+            'Hapus Kategori',
+            'Kategori',
+            'Menghapus kategori: ' . $namaKategori
+        );
 
         return redirect()->route('kategori.index')->with('success', 'Kategori berhasil dihapus');
     }

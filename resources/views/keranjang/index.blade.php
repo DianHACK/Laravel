@@ -142,11 +142,16 @@
                         </div>
 
                         <div class="text-center border rounded p-3">
-                            <img src="{{ asset('assets/images/Qris.jpeg') }}"
-                                alt="QRIS Pembayaran"
-                                width="250"
-                                class="img-fluid rounded">
-
+                            @if ($pengaturan && $pengaturan->qris)
+                                <img src="{{ asset('storage/' . $pengaturan->qris) }}"
+                                    alt="QRIS Pembayaran"
+                                    width="250"
+                                    class="img-fluid rounded">
+                            @else
+                                <div class="alert alert-warning">
+                                    QRIS belum diatur oleh admin.
+                                </div>
+                            @endif
                             <p class="mt-2 mb-0 text-muted">
                                 Setelah melakukan pembayaran QRIS, masukkan nominal bayar lalu klik Checkout.
                             </p>
@@ -163,17 +168,19 @@
                             <table class="table table-bordered mb-0">
                                 <tr>
                                     <th width="160">Bank</th>
-                                    <td>BRI</td>
+                                    <td>{{ $pengaturan->bank ?? '-' }}</td>
                                 </tr>
+
                                 <tr>
                                     <th>No. Rekening</th>
                                     <td>
-                                        <strong>8119 0101 9799 530</strong>
+                                        <strong>{{ $pengaturan->no_rekening ?? '-' }}</strong>
                                     </td>
                                 </tr>
+
                                 <tr>
                                     <th>Atas Nama</th>
-                                    <td>Tri Widiantoko</td>
+                                    <td>{{ $pengaturan->atas_nama ?? '-' }}</td>
                                 </tr>
                             </table>
 

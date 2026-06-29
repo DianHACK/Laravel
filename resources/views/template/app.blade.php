@@ -484,6 +484,28 @@
                                     <span class="menu-text">Laporan Keuntungan</span>
                                 </a>
                             </li>
+
+                            <li class="side-nav-title mt-2">Pengaturan</li>
+
+                            <li class="side-nav-item">
+                                <a href="{{ route('pengaturan-toko.index') }}"
+                                class="side-nav-link {{ request()->is('pengaturan-toko*') ? 'active' : '' }}">
+                                    <span class="menu-icon">
+                                        <i data-lucide="settings"></i>
+                                    </span>
+                                    <span class="menu-text">Pengaturan Toko</span>
+                                </a>
+                            </li>
+
+                            <li class="side-nav-item">
+                                <a href="{{ route('log-aktivitas.index') }}"
+                                class="side-nav-link {{ request()->is('log-aktivitas*') ? 'active' : '' }}">
+                                    <span class="menu-icon">
+                                        <i data-lucide="activity"></i>
+                                    </span>
+                                    <span class="menu-text">Log Aktivitas</span>
+                                </a>
+                            </li>
                         @endif
 
                         {{-- LOGOUT --}}

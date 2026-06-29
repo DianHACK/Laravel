@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Barang;
 use App\Models\StokBarang;
+use App\Models\LogAktivitas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class ControllerStokBarang 
+class ControllerStokBarang
 {
     public function index(Request $request)
     {
@@ -95,9 +96,14 @@ class ControllerStokBarang
 
             DB::commit();
 
+            LogAktivitas::catat(
+                'Stok ' . ucfirst($request->jenis),
+                'Stok Barang',
+                'Mencatat stok ' . $request->jenis . ' barang ' . $barang->nama_barang . ' sebanyak ' . $request->jumlah
+            );
+
             return redirect()->route('stok.index')
                 ->with('success', 'Data stok barang berhasil disimpan');
-
         } catch (\Exception $e) {
             DB::rollBack();
 

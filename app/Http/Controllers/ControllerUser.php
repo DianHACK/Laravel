@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\LogAktivitas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -30,12 +31,18 @@ class ControllerUser
             'role'     => 'required|in:admin,kasir',
         ]);
 
-        User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role'     => $request->role,
+            'role' => $request->role,
         ]);
+
+        LogAktivitas::catat(
+            'Tambah User',
+            'User Management',
+            'Menambahkan user baru: ' . $user->name . ' sebagai ' . $user->role
+        );
 
         return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan');
     }
@@ -69,6 +76,11 @@ class ControllerUser
         }
 
         $user->update($data);
+        LogAktivitas::catat(
+            'Edit User',
+            'User Management',
+            'Mengedit data user: ' . $user->name
+        );
 
         return redirect()->route('users.index')->with('success', 'User berhasil diperbarui');
     }
@@ -80,7 +92,16 @@ class ControllerUser
         }
 
         $user = User::findOrFail($id);
+
+        $namaUser = $user->name;
+
         $user->delete();
+
+        LogAktivitas::catat(
+            'Hapus User',
+            'User Management',
+            'Menghapus user: ' . $namaUser
+        );
 
         return redirect()->route('users.index')->with('success', 'User berhasil dihapus');
     }

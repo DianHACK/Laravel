@@ -11,6 +11,8 @@ use App\Http\Controllers\ControllerPenjualan;
 use App\Http\Controllers\ControllerKeranjang;
 use App\Http\Controllers\ControllerLaporan;
 use App\Http\Controllers\ControllerLaporanKeuntungan;
+use App\Http\Controllers\ControllerLogAktivitas;
+use App\Http\Controllers\ControllerPengaturanToko;
 use App\Http\Controllers\ControllerProfile;
 use App\Http\Controllers\ControllerRiwayatTransaksi;
 use App\Http\Controllers\ControllerUser;
@@ -94,6 +96,11 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/barang-terlaris', [ControllerBarangTerlaris::class, 'index'])->name('barang.terlaris');
         Route::get('/laporan-keuntungan', [ControllerLaporanKeuntungan::class, 'index'])->name('laporan.keuntungan');
+
+        Route::get('/pengaturan-toko', [ControllerPengaturanToko::class, 'index'])->name('pengaturan-toko.index');
+        Route::put('/pengaturan-toko', [ControllerPengaturanToko::class, 'update'])->name('pengaturan-toko.update');
+
+        Route::get('/log-aktivitas', [ControllerLogAktivitas::class, 'index'])->name('log-aktivitas.index');
 
     // TRANSAKSI UNTUK ADMIN DAN KASIR
     Route::middleware('role:admin,kasir')->group(function () {

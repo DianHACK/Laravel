@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Keranjang;
 use App\Models\Penjualan;
 use App\Models\PenjualanDetail;
+use App\Models\PengaturanToko;
+use App\Models\LogAktivitas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +23,13 @@ class ControllerKeranjang
             return $item->jumlah * $item->harga;
         });
 
-        return view('keranjang.index', compact('keranjangs', 'total'));
+        $pengaturan = PengaturanToko::first();
+
+        return view('keranjang.index', compact(
+            'keranjangs',
+            'total',
+            'pengaturan'
+        ));
     }
 
     public function update(Request $request, int $id)
@@ -77,6 +85,8 @@ class ControllerKeranjang
         ]);
 
         DB::beginTransaction();
+
+
 
         try {
             $penjualan = Penjualan::create([
@@ -135,17 +145,17 @@ class ControllerKeranjang
         }
     }
 
-    public function struk(int $id)
+    public function struk($id)
     {
-        $query = Penjualan::with(['detail.barang', 'user'])
-            ->where('id', $id);
+        $penjualan = Penjualan::with(['detail.barang', 'user'])
+            ->findOrFail($id);
 
-        if (Auth::user()->role == 'kasir') {
-            $query->where('id_user', Auth::id());
-        }
+        $pengaturan = PengaturanToko::first();
 
-        $penjualan = $query->firstOrFail();
-
-        return view('penjualan.struk', compact('penjualan'));
+        return view('penjualan.struk', compact(
+            'penjualan',
+            'pengaturan'
+        ));
     }
+    
 }

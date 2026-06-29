@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Models\LogAktivitas;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
-class AuthController 
+class AuthController
 {
     public function showLogin()
     {
@@ -30,7 +32,13 @@ class AuthController
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            return redirect()->route('dashboard')->with('success', 'Login berhasil');
+            LogAktivitas::catat(
+                'Login',
+                'Auth',
+                'User berhasil login ke sistem'
+            );
+
+            return redirect()->route('dashboard');
         }
 
         return back()->withErrors([
@@ -67,11 +75,17 @@ class AuthController
 
     public function logout(Request $request)
     {
+        LogAktivitas::catat(
+            'Logout',
+            'Auth',
+            'User keluar dari sistem'
+        );
+
         Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with('success', 'Logout berhasil');
+        return redirect()->route('login');
     }
 }

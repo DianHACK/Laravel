@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Rak;
+use App\Models\LogAktivitas;
 use Illuminate\Http\Request;
 
 class ControllerRak 
 {
     public function index()
     {
-        $raks = Rak::latest()->get();
+        $raks = Rak::orderBy('id', 'desc')->get();
 
         return view('rak.index', compact('raks'));
     }
@@ -22,16 +23,20 @@ class ControllerRak
     public function store(Request $request)
     {
         $request->validate([
-            'nama_rak'  => 'required|min:2',
-            'lokasi'    => 'nullable',
+            'nama_rak' => 'required|min:2',
             'deskripsi' => 'nullable',
         ]);
 
-        Rak::create([
-            'nama_rak'  => $request->nama_rak,
-            'lokasi'    => $request->lokasi,
+        $rak = Rak::create([
+            'nama_rak' => $request->nama_rak,
             'deskripsi' => $request->deskripsi,
         ]);
+
+        LogAktivitas::catat(
+            'Tambah Rak',
+            'Rak',
+            'Menambahkan rak baru: ' . $rak->nama_rak
+        );
 
         return redirect()->route('rak.index')->with('success', 'Rak berhasil ditambahkan');
     }
@@ -46,18 +51,22 @@ class ControllerRak
     public function update(Request $request, $id)
     {
         $request->validate([
-            'nama_rak'  => 'required|min:2',
-            'lokasi'    => 'nullable',
+            'nama_rak' => 'required|min:2',
             'deskripsi' => 'nullable',
         ]);
 
         $rak = Rak::findOrFail($id);
 
         $rak->update([
-            'nama_rak'  => $request->nama_rak,
-            'lokasi'    => $request->lokasi,
+            'nama_rak' => $request->nama_rak,
             'deskripsi' => $request->deskripsi,
         ]);
+
+        LogAktivitas::catat(
+            'Edit Rak',
+            'Rak',
+            'Mengedit data rak: ' . $rak->nama_rak
+        );
 
         return redirect()->route('rak.index')->with('success', 'Rak berhasil diperbarui');
     }
@@ -65,7 +74,16 @@ class ControllerRak
     public function destroy($id)
     {
         $rak = Rak::findOrFail($id);
+
+        $namaRak = $rak->nama_rak;
+
         $rak->delete();
+
+        LogAktivitas::catat(
+            'Hapus Rak',
+            'Rak',
+            'Menghapus rak: ' . $namaRak
+        );
 
         return redirect()->route('rak.index')->with('success', 'Rak berhasil dihapus');
     }
